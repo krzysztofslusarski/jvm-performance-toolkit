@@ -21,12 +21,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import static pl.ks.profiling.safepoint.analyzer.web.GcLogsAnalyzerWebConfiguration.GCLOGS_COM_SITE_PROFILE;
+
 /**
- * Root page of the gclogs.com deployment (prod profile), where the GC logs analyzer is the only tool - in every
- * other profile the root page belongs to the application hosting the tools.
+ * Root page of the gclogs.com site, where the GC logs analyzer is the only tool - in every other profile the root
+ * page belongs to the application hosting the tools.
  */
 @Controller
-@Profile("prod")
+@Profile(GCLOGS_COM_SITE_PROFILE)
 class GcLogsIndexController {
     @Value("${indexPageAvailable}")
     private boolean indexPageAvailable;

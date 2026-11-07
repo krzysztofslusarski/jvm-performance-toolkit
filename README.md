@@ -1,6 +1,6 @@
 # JVM profiling toolkit
-Viewer for collapsed stack and JFR outputs of profiles. Dedicated to Async-profiler 2.x, but
-works also with Async-profiler 1.x and Java Flight Recorder. It also contains the
+Viewer for collapsed stack and JFR outputs of profiles. Dedicated to Async-profiler, but works also
+with JDK Flight Recorder. It also contains the
 [GC logs analyzer](#gc-logs-analyzer) - analyzer of the JVM unified logs (GC, safepoints, class loading,
 threads, JIT compilation).
 
@@ -8,8 +8,8 @@ JAVA_HOME should point to JDK 17.
 
 ## How to install - from sources
 ```shell script
-git clone --depth 1 https://github.com/krzysztofslusarski/jvm-profiling-toolkit.git
-cd jvm-profiling-toolkit/
+git clone --depth 1 https://github.com/krzysztofslusarski/java-profiling-toolkit.git
+cd java-profiling-toolkit/
 mvn clean package
 ```
 
@@ -19,7 +19,7 @@ mvn clean package
 Java should point to JDK 17. After you run it, the toolkit is available on `http://localhost:8079/` - the main
 page leads to the JFR viewer, the collapsed stack viewer and the GC logs analyzer.
 
-The `prod` profile (`--spring.profiles.active=prod`) is the [gclogs.com](https://gclogs.com) deployment: only
+The `gclogs-com-site` profile (`--spring.profiles.active=gclogs-com-site`) is the [gclogs.com](https://gclogs.com) site: only
 the GC logs analyzer is available there and it owns the main page.
 
 ## How to configure
@@ -69,10 +69,12 @@ icicle hanging from the top when the stacks are reversed. Arrows move between fr
 are drawn, `Enter` zooms into the selected frame, `Backspace` zooms out and `Home` resets the zoom. Frames
 are coloured exactly like in the HTML flame graphs.
 
-## Example usage od Async-profiler for collapsed stack
-`
-./profiler -t -d 30 -e cpu -o collapsed -f output.txt <pid>
-`
+## Example usage of Async-profiler
+
+Collapsed stack file for the collapsed stack viewer:
+```shell script
+asprof -t -d 30 -e cpu -o collapsed -f output.txt <pid>
+```
 
 * `-t` - gives you output divided by thread
 * `-d 30` - 30s duration
@@ -81,71 +83,99 @@ are coloured exactly like in the HTML flame graphs.
 * `-f output.txt ` - output file
 * `<pid>` - pid of your JVM
 
+JFR file for the JFR viewer, with CPU, wall-clock, allocation and lock samples at once:
+```shell script
+asprof --all -d 30 -f profile.jfr <pid>
+```
+
 ## Features of viewer
+
+Every page has a light and a dark theme, the choice is remembered by the browser.
+
+### Flame graphs
+
+Both viewers present the stacks as interactive HTML flame graphs:
+* click a frame to zoom into it, `0` resets the zoom, `Ctrl`/`Alt` + click removes the stack from the graph
+* `I` inverts the graph, `T` toggles the tree view, `D` toggles the dark mode
+* `Ctrl+F` searches frames by a regular expression, `N` / `Shift+N` move between the matches
+* frames are coloured by their type (JIT compiled, inlined, interpreted, native, kernel, ...), the legend is
+  under the info button
+
 ### Analysis of collapsed stack file
-#### Flame graphs
-![Flame graphs](images/flame-graphs.png)
 
-Viewer can generate flame graphs:
-* **Flame graph** - common flame graph from your collapsed stack file
-* **Flame graph with no thread division** - common flame graph with division by thread removed
-* **Hotspot flame graph** - flame graph that is inverted and reversed, presenting hotspots from collapsed stack file:
-  *  **depth = 10/20/30** - shortened graph with smaller stacks
+The upload page (`/upload-collapsed`) accepts a collapsed stack file, also compressed (`*.zip`, `*.gz`, `*.xz`,
+`*.7z`), with:
+* a title, visible on every page
+* total time and self time thresholds - methods with a smaller fraction of the samples are not listed in the tables
+* a filter - only the stacks containing the given text are loaded
 
-#### Method total time
-![Total time](images/total-time.png)
+The report has three pages:
+* **Flame graphs**:
+  * flame graph of the whole file
+  * flame graph with the first 1 - 4 levels skipped (e.g. the thread level of `asprof -t` output)
+  * hotspot flame graph - the stacks are reversed, so the graph starts (from the top) with the methods that
+    were on the top of the stacks, also limited to the depth of 10 / 20 / 30 frames
+* **Method total time** - number of stacks that have the method anywhere on the stack
+* **Method self time** - number of stacks that have the method at the top of the stack
 
-Total time is number of stacks, that method was anywhere on the stack. Method name can be filtered.    
-
-#### Method self time
-![Self time](images/self-time.png)
-
-Self time is number of stacks, that method was at the end of the stack. Method name can be filtered.      
-
-#### Callee and callers flame graphs for methods
-![Callee](images/callee.png)
-
-Callee graph shows what method is actually doing. This graph is aggregated, so it shows every usage of method.
-
-![Callee](images/callers.png)
-
-Callers graph shows what which method used profiled method. This graph is aggregated, so it shows every usage of method.
+Both tables can be filtered by the method name. For every method there are:
+* callee flame graph - what the method does, aggregated over every call of the method
+* callers flame graph - which methods called it, aggregated over every call of the method
+* a new report (flame graphs and tables) of the stacks cut at the method, in both directions
 
 ### Analysis of JFR files
 
-You can add filters to your parser:
-* Thread filter
-* Access log style filter - end date and duration (in milliseconds)
-* Warmup / cooldown filter - this one skips proper number of seconds from the beginning and the end
+The JFR viewer reads these events:
+* execution samples (`jdk.ExecutionSample`) - Async-profiler `cpu`/`itimer` modes, JDK Flight Recorder
+* wall-clock samples (`profiler.WallClockSample`) - Async-profiler `wall` mode
+* allocations (`jdk.ObjectAllocationInNewTLAB`, `jdk.ObjectAllocationOutsideTLAB`) - Async-profiler `alloc` mode
+* locks (`jdk.JavaMonitorEnter`) - Async-profiler `lock` mode
+* CPU load (`jdk.CPULoad`)
+* spans (`profiler.Span`) - created with the Async-profiler span API
 
-#### Collapsed stack files
+#### Upload
 
-You can upload multiple JFR files with a single HTTP POST to the analyzer. Analyzer creates following 
-collapsed stack from your JFR file:
-* Wall-clock - if you used Async-profiler in ```wall``` mode only
-* CPU - if you used Async-profiler in ```wall``` mode the CPU file is made from ```wall``` output with 
-  stacks that were consuming CPU only
-* Heap allocation (count) - if you used ```alloc``` mode - this one presents count of allocations that
-  needed new TLAB or needed allocation outside TLAB 
-* Heap allocation (size) - if you used ```alloc``` mode - this one presents size of allocations mentioned
-  above
-* Locks - if you used ```lock``` mode
-* CPU load
-  * JVM system
-  * JVM user
-  * JVM total
-  * Machine total
-  * Machine total - JVM total 
+On the upload page (`/upload-stateful-jfr`) you can upload many JFR files at once (also gzipped, `*.jfr.gz`),
+they are analysed together. The files stay in memory - they are listed on the upload page, where they can be
+opened again or removed. Options:
+* a custom name of the files, visible in the viewer
+* JFR not from Async-profiler or from Async-profiler < 3.0
+* exact time of the wall-clock samples - Async-profiler aggregates wall-clock samples, the exact time of each
+  one is calculated from the following samples of the thread
+* unified lambda names - merges lambda classes that differ only by the generated suffix (useful when the files
+  come from many JVMs)
+* cross-file span matching - matches spans with the samples from the other files
+* fail if any file cannot be parsed - by default such a file is skipped
+* filter while loading - exactly the same filters as in the viewer (below), applied while the files are parsed.
+  The rejected events are not kept in memory, so huge recordings fit in memory when you know that only a part of
+  them will be analysed. The rejected events cannot be brought back later; the filters relative to the start
+  of the recording (warmup) are counted from the bounds of the whole recording.
 
-#### Other JFR information
+#### Viewer
 
-JFR viewer will also show you:
-* OS Info
-* CPU Info
-* Initial system properties
-* JVM Info
+The viewer shows the data of the selected event - execution samples, wall-clock samples, allocations (count or
+size) or locks (count or time) - as:
+* **flame graph**
+* **total time table** - methods with the number of samples that have the method anywhere on the stack
+* **self time table** - methods with the number of samples that have the method at the top of the stack
+* **span stats** - spans sorted by their duration, with the thread and the start time
+* **CPU stats** - charts of the CPU load: machine total, JVM total, not JVM total, JVM user and JVM system
 
-If you upload multiple files then last information parsed is present in those sections.
+In the tables every method can be used to trim the stacks - a new file appears in memory with only the stacks
+containing the method, cut at it: from the method up (what the method does) or from the thread start down to
+the method (how it was called).
+
+Filters (they can be combined, only one time filter at a time):
+* thread name - equals or contains
+* stack trace - contains or does not contain the given texts
+* span - stacks recorded inside a span with the given tag (equals or contains)
+* time - access log style (end date and duration), start/end timestamp, warmup/cooldown or warmup/duration
+* samples consuming CPU only
+
+Additional levels of the flame graph: thread, timestamp (10s, 1s or 100ms), file name, spans and line numbers.
+
+Options: limit of the table rows and a reversed flame graph. The current view can be opened in a new browser
+tab, also as a new viewer with all the current settings.
 
 ## GC logs analyzer
 

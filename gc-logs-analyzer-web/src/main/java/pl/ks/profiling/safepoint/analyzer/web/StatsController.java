@@ -18,6 +18,8 @@ package pl.ks.profiling.safepoint.analyzer.web;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.unit.DataSize;
@@ -47,6 +49,7 @@ class StatsController {
     private final ParsingProperties parsingProperties;
     private final StatsRepository statsRepository;
     private final ParsingExecutor parsingExecutor;
+    private final Environment environment;
 
     @GetMapping("/upload")
     String upload(Model model, HttpServletRequest request) {
@@ -54,6 +57,8 @@ class StatsController {
         model.addAttribute("enqueueUrl", enqueueUrl);
         model.addAttribute("parsingProperties", parsingProperties);
         model.addAttribute("maxFileSize", maxFileSize);
+        // The terms of service apply only to the logs uploaded to the gclogs.com site
+        model.addAttribute("gclogsComSite", environment.acceptsProfiles(Profiles.of(GcLogsAnalyzerWebConfiguration.GCLOGS_COM_SITE_PROFILE)));
         return "gc-logs/upload";
     }
 

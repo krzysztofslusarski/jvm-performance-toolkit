@@ -21,16 +21,18 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 import pl.ks.profiling.safepoint.analyzer.web.GcLogsAnalyzerWebConfiguration;
 
+import static pl.ks.profiling.safepoint.analyzer.web.GcLogsAnalyzerWebConfiguration.GCLOGS_COM_SITE_PROFILE;
+
 /**
- * Registers the tools hosted by the application. The prod profile is the gclogs.com deployment - only the GC logs
- * analyzer is available there.
+ * Registers the tools hosted by the application. Only the GC logs analyzer is available on the gclogs.com site
+ * (the gclogs-com-site profile).
  */
 @Configuration(proxyBeanMethods = false)
 @Import({
         GcLogsAnalyzerWebConfiguration.class,
 })
 class ToolkitApplicationConfiguration {
-    @Profile("!prod")
+    @Profile("!" + GCLOGS_COM_SITE_PROFILE)
     @Configuration(proxyBeanMethods = false)
     @ComponentScan({
             "pl.ks.jfr",

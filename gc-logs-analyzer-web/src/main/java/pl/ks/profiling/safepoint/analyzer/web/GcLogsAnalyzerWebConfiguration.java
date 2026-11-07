@@ -31,4 +31,9 @@ import pl.ks.profiling.safepoint.analyzer.commons.shared.KernelConfiguration;
         KernelConfiguration.class
 })
 public class GcLogsAnalyzerWebConfiguration {
+    /**
+     * Profile of the gclogs.com site: the GC logs analyzer is the only tool there, it owns the root page and the
+     * uploaded logs are stored on the author's server.
+     */
+    public static final String GCLOGS_COM_SITE_PROFILE = "gclogs-com-site";
 }

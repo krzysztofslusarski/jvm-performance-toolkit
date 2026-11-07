@@ -104,7 +104,7 @@ input[type="file"].form-input {
     margin-top: 0.25rem;
 }
 
-/* ---- Landing page (prod profile) ---- */
+/* ---- Landing page (gclogs-com-site profile) ---- */
 .feature-card .icon-upload { background: var(--icon-upload-bg); color: var(--icon-upload-fg); }
 .feature-card .icon-docker { background: var(--icon-docker-bg); color: var(--icon-docker-fg); }
 .feature-card .icon-github { background: var(--icon-github-bg); color: var(--icon-github-fg); }

@@ -37,7 +37,7 @@ parsing:
     removeAfterRead: ${REPORT_REMOVE_AFTER_READ:false}
   workerThreads: ${NUMBER_OF_WORKER_THREADS:4}
 
-# Used only in the prod profile, where the GC logs analyzer owns the root page
+# Used only on the gclogs.com site (gclogs-com-site profile), where the GC logs analyzer owns the root page
 indexPageAvailable: false
 dockerImage: @spring-boot.build-image.imageName@
 
