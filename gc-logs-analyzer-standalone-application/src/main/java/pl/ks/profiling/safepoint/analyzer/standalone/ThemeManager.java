@@ -1,6 +1,7 @@
 package pl.ks.profiling.safepoint.analyzer.standalone;
 
 import com.formdev.flatlaf.FlatLaf;
+import lombok.extern.slf4j.Slf4j;
 
 import java.awt.Window;
 import java.awt.event.WindowAdapter;
@@ -9,11 +10,14 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 /**
- * Current theme of the application, remembered between the runs. Used only on the event dispatch thread.
+ * Current theme of the application, remembered between the runs (Java preferences: node of this package, key
+ * darkMode). Used only on the event dispatch thread.
  */
+@Slf4j
 final class ThemeManager {
     private static final Preferences PREFERENCES = Preferences.userNodeForPackage(ThemeManager.class);
     private static final String DARK_MODE_KEY = "darkMode";
@@ -66,6 +70,13 @@ final class ThemeManager {
         }
         current = theme;
         PREFERENCES.putBoolean(DARK_MODE_KEY, dark);
+        try {
+            // Java writes the preferences only from time to time and at a normal exit, so they would be lost when
+            // the application is killed
+            PREFERENCES.flush();
+        } catch (BackingStoreException e) {
+            log.warn("The theme cannot be remembered", e);
+        }
 
         // The standard components of every window get the colors of the new look and feel, the components styled
         // by the application are styled again by the listeners
