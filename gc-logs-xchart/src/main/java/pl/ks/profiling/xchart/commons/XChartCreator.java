@@ -32,7 +32,14 @@ public class XChartCreator {
     private final PresentationFontProvider presentationFontProvider;
 
     public PieChart createPieChart(Chart chart, String title, int width) {
-        PieChart pieChart = createEmptyPieChart(title, width);
+        return createPieChart(chart, title, width, ChartTheme.DEFAULT);
+    }
+
+    /**
+     * @param title shown above the chart, an empty one is not drawn
+     */
+    public PieChart createPieChart(Chart chart, String title, int width, ChartTheme theme) {
+        PieChart pieChart = createEmptyPieChart(title, width, theme);
         for (Object[] row : chart.getRows()) {
             String seriesName = row[0].toString();
             BigDecimal value = new BigDecimal(row[1].toString());
@@ -42,11 +49,14 @@ public class XChartCreator {
         return pieChart;
     }
 
-    private PieChart createEmptyPieChart(String title, int width) {
+    private PieChart createEmptyPieChart(String title, int width, ChartTheme theme) {
         PieChart pieChart = new PieChartBuilder().width(width).height(800).title(title).build();
         pieChart.getStyler().setSeriesColors(SERIES_COLORS);
         pieChart.getStyler().setLegendVisible(true);
-        pieChart.getStyler().setChartBackgroundColor(Color.WHITE);
+        theme.apply(pieChart.getStyler());
+        if (theme != ChartTheme.DEFAULT) {
+            pieChart.getStyler().setChartTitleVisible(!title.isEmpty());
+        }
         pieChart.getStyler().setLegendFont(presentationFontProvider.getDefaultFont());
         pieChart.getStyler().setSumFont(presentationFontProvider.getDefaultFont());
         pieChart.getStyler().setChartTitleFont(presentationFontProvider.getDefaultBoldFont());
@@ -54,7 +64,14 @@ public class XChartCreator {
     }
 
     public XYChart createXyChart(Chart chart, String title, int width) {
-        XYChart xyChart = createEmptyXyChart(chart, title, width);
+        return createXyChart(chart, title, width, ChartTheme.DEFAULT);
+    }
+
+    /**
+     * @param title shown above the chart, an empty one is not drawn
+     */
+    public XYChart createXyChart(Chart chart, String title, int width, ChartTheme theme) {
+        XYChart xyChart = createEmptyXyChart(chart, title, width, theme);
         Object[][] chartRows = chart.getRows();
         java.util.List<Number> xAxis = extractColumnValues(chartRows, chart.getXAxisColumnIndex(), false);
         Object[] columnsHeadersRow = chart.getHeaders();
@@ -82,7 +99,7 @@ public class XChartCreator {
         }
     }
 
-    private XYChart createEmptyXyChart(Chart chart, String title, int width) {
+    private XYChart createEmptyXyChart(Chart chart, String title, int width, ChartTheme theme) {
         XYChart xyChart = new XYChartBuilder()
                 .title(title)
                 .xAxisTitle(chart.getXAxisLabel())
@@ -98,7 +115,10 @@ public class XChartCreator {
         chartStyler.setYAxisLabelAlignment(Styler.TextAlignment.Right);
         chartStyler.setYAxisDecimalPattern("#,###.##");
         chartStyler.setLegendVisible(true);
-        chartStyler.setChartBackgroundColor(Color.WHITE);
+        theme.apply(chartStyler);
+        if (theme != ChartTheme.DEFAULT) {
+            chartStyler.setChartTitleVisible(!title.isEmpty());
+        }
         chartStyler.setSeriesColors(SERIES_COLORS);
         chartStyler.setLegendFont(presentationFontProvider.getDefaultFont());
         chartStyler.setAxisTickLabelsFont(presentationFontProvider.getDefaultFont());

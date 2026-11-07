@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>gc-log-generator</artifactId>
+    <artifactId>gc-logs-generator</artifactId>
     <description>
         Synthetic workload that makes the JVM emit GC, safepoint, class loading, thread, JIT, TLAB and
         string deduplication log events covering the statistics presented by the analyzer.
@@ -22,7 +22,7 @@
     </properties>
 
     <build>
-        <finalName>gc-log-generator</finalName>
+        <finalName>gc-logs-generator</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

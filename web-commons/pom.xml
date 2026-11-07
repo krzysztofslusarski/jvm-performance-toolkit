@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>toolkit-web-commons</artifactId>
+    <artifactId>web-commons</artifactId>
 
     <description>
         Look of the web pages shared by every tool: stylesheet with the light and dark theme, theme switcher

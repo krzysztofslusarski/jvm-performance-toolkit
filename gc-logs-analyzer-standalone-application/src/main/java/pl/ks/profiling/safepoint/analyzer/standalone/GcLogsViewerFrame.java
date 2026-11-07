@@ -30,6 +30,7 @@ class GcLogsViewerFrame extends JFrame {
     private boolean showDecorators = false;
     private JScrollPane contentScroll;
     private GcLogsPanel gcLogsPanel;
+    private GcLogsViewerPanel viewerPanel;
     private GcLogsViewerFrame uberFrame;
     private GCLogFile gcLogFile;
 
@@ -40,10 +41,15 @@ class GcLogsViewerFrame extends JFrame {
         this.uberFrame = this;
         setLayout(new BorderLayout());
         setTitle("GC Logs Viewer");
-        add(new GcLogsViewerPanel(), BorderLayout.NORTH);
+        viewerPanel = new GcLogsViewerPanel();
+        add(viewerPanel, BorderLayout.NORTH);
         contentScroll = new JScrollPane(gcLogsPanel);
         contentScroll.getVerticalScrollBar().setUnitIncrement(32);
         add(contentScroll, BorderLayout.CENTER);
+        ThemeManager.onChange(this, () -> {
+            viewerPanel.applyTheme();
+            gcLogsPanel.applyTheme();
+        });
         setSize(1500, 1000);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -52,12 +58,8 @@ class GcLogsViewerFrame extends JFrame {
 
     class GcLogsViewerPanel extends JPanel {
         public GcLogsViewerPanel() {
-            setBackground(new Color(248, 250, 252));
             setOpaque(true);
-            setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(218, 222, 230)),
-                    new EmptyBorder(10, 16, 10, 16)
-            ));
+            applyTheme();
             setLayout(new MigLayout("", "[]8[]16[]8[]16[]", ""));
             JLabel inputDescription = new JLabel("GC collection id:", JLabel.LEFT);
             inputDescription.setFont(presentationFontProvider.getDefaultFont());
@@ -89,21 +91,44 @@ class GcLogsViewerFrame extends JFrame {
             });
             add(button, "span");
         }
+
+        void applyTheme() {
+            Theme theme = ThemeManager.current();
+            setBackground(theme.panelBackground);
+            setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createMatteBorder(0, 0, 1, 0, theme.border),
+                    new EmptyBorder(10, 16, 10, 16)
+            ));
+        }
     }
 
     class GcLogsPanel extends JPanel {
+        private JLabel info;
+        private JTextArea textArea;
+
         public GcLogsPanel() {
-            setBackground(Color.WHITE);
+            setBackground(ThemeManager.current().contentBackground);
             setOpaque(true);
             setLayout(new MigLayout("insets 16"));
             showInfo();
         }
 
         private void showInfo() {
-            JLabel inputDescription = new JLabel("Enter collection id to view log", JLabel.LEFT);
-            inputDescription.setFont(presentationFontProvider.getDefaultFont());
-            inputDescription.setForeground(new Color(100, 116, 139));
-            add(inputDescription);
+            info = new JLabel("Enter collection id to view log", JLabel.LEFT);
+            info.setFont(presentationFontProvider.getDefaultFont());
+            info.setForeground(ThemeManager.current().hint);
+            add(info);
+        }
+
+        void applyTheme() {
+            Theme theme = ThemeManager.current();
+            setBackground(theme.contentBackground);
+            if (info != null) {
+                info.setForeground(theme.hint);
+            }
+            if (textArea != null) {
+                textArea.setBackground(theme.panelBackground);
+            }
         }
 
         void recreate() {
@@ -122,11 +147,12 @@ class GcLogsViewerFrame extends JFrame {
                 return;
             }
 
-            JTextArea textArea = new JTextArea();
+            info = null;
+            textArea = new JTextArea();
             textArea.setFont(presentationFontProvider.getMonospaceFont());
             textArea.setBorder(new EmptyBorder(8, 8, 8, 8));
             textArea.setEditable(false);
-            textArea.setBackground(new Color(248, 250, 252));
+            textArea.setBackground(ThemeManager.current().panelBackground);
 
             textArea.setText(builder.toString());
             add(textArea);

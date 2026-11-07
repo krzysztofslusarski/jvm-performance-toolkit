@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pl.ks.profiling.safepoint.analyzer.web;
+package pl.ks.profiling.safepoint.analyzer.commons.shared;
 
 /**
- * How uploaded logs are parsed: unified logs (JDK 9+) of the given collector, or JDK 8 logs (G1 and Parallel).
+ * How the logs are parsed: unified logs (JDK 9+) of the given collector, or JDK 8 logs (G1 and Parallel).
+ *
+ * @see StatsService#createAllStats(ParsingMode, pl.ks.profiling.io.source.LogsSource, java.util.function.Consumer, java.util.function.Consumer)
  */
 public enum ParsingMode {
     G1_AND_PARALLEL,

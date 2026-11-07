@@ -29,6 +29,7 @@ import org.springframework.web.server.ResponseStatusException;
 import pl.ks.profiling.io.InputUtils;
 import pl.ks.profiling.io.StorageUtils;
 import pl.ks.profiling.safepoint.analyzer.commons.shared.ParserUtils;
+import pl.ks.profiling.safepoint.analyzer.commons.shared.ParsingMode;
 import pl.ks.profiling.safepoint.analyzer.commons.shared.report.JvmLogFile;
 import pl.ks.profiling.web.commons.WelcomePage;
 

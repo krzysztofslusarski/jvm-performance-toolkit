@@ -37,8 +37,18 @@ public class AnalyzerFrame extends JFrame {
         setLocationRelativeTo(null);
 
         contentScroll.getVerticalScrollBar().setUnitIncrement(32);
-        add(new MenuPanel(stats, this::renderPage, this::openGcLogsViewer), BorderLayout.LINE_START);
+        MenuPanel menuPanel = new MenuPanel(stats, this::renderPage, this::openGcLogsViewer);
+        add(menuPanel, BorderLayout.LINE_START);
         add(contentScroll, BorderLayout.CENTER);
+
+        ThemeManager.onChange(this, () -> {
+            menuPanel.applyTheme();
+            int scrollPosition = contentScroll.getVerticalScrollBar().getValue();
+            contentPanel.applyTheme();
+            revalidate();
+            repaint();
+            SwingUtilities.invokeLater(() -> contentScroll.getVerticalScrollBar().setValue(scrollPosition));
+        });
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setVisible(true);

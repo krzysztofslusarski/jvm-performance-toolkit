@@ -16,6 +16,7 @@
 package pl.ks.profiling.safepoint.analyzer.web;
 
 import pl.ks.profiling.io.source.LogsSource;
+import pl.ks.profiling.safepoint.analyzer.commons.shared.ParsingMode;
 
 import java.util.function.Function;
 

@@ -54,7 +54,7 @@
         </dependency>
         <dependency>
             <groupId>pl.ks.profiling</groupId>
-            <artifactId>toolkit-web-commons</artifactId>
+            <artifactId>web-commons</artifactId>
         </dependency>
     </dependencies>
 </project>

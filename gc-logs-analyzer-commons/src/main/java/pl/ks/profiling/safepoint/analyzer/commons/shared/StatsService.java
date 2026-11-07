@@ -79,6 +79,15 @@ public class StatsService {
     private final static DecimalFormat decimalFormat = new DecimalFormat("#,##0.00", DecimalFormatSymbols.getInstance(Locale.US));
     private final static int PROGRESS_NOTIFICATION_THROTTLE = 1000;
 
+    public JvmLogFile createAllStats(ParsingMode parsingMode, LogsSource ls, Consumer<ParsingProgress> notificationConsumer, Consumer<JvmLogFile> onComplete) {
+        return switch (parsingMode) {
+            case G1_AND_PARALLEL -> createAllStatsUnifiedLogger(ls, notificationConsumer, onComplete);
+            case SHENANDOAH -> createAllStatsShenandoah(ls, notificationConsumer, onComplete);
+            case ZGC -> createAllStatsZgc(ls, notificationConsumer, onComplete);
+            case JDK8 -> createAllStatsJdk8(ls, notificationConsumer, onComplete);
+        };
+    }
+
     public JvmLogFile createAllStatsJdk8(LogsSource ls, Consumer<ParsingProgress> notificationConsumer, Consumer<JvmLogFile> onComplete) {
         try (LogsSource logsSource = ls) {
             SafepointJdk8LogFileParser safepointJdk8LogFileParser = new SafepointJdk8LogFileParser();

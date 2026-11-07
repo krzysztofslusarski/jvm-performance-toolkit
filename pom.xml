@@ -9,8 +9,8 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <!-- Shared -->
-        <module>common</module>
-        <module>toolkit-web-commons</module>
+        <module>commons</module>
+        <module>web-commons</module>
 
         <!-- JFR viewer -->
         <module>jfr-parser</module>
@@ -25,7 +25,7 @@
         <module>gc-logs-analyzer-web</module>
         <module>gc-logs-analyzer-cli-application</module>
         <module>gc-logs-analyzer-standalone-application</module>
-        <module>gc-log-generator</module>
+        <module>gc-logs-generator</module>
 
         <!-- Web application with all the tools -->
         <module>toolkit-web-application</module>
@@ -134,12 +134,12 @@
 
             <dependency>
                 <groupId>pl.ks.profiling</groupId>
-                <artifactId>common</artifactId>
+                <artifactId>commons</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>pl.ks.profiling</groupId>
-                <artifactId>toolkit-web-commons</artifactId>
+                <artifactId>web-commons</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

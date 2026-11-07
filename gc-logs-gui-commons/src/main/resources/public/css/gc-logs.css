@@ -1,7 +1,7 @@
 /*
- * GC logs analyzer pages - loaded after the shared /css/app.css, which gives the look, the colors and the dark
- * theme. Only the components that the other tools do not use are defined here; every color comes from a variable
- * with a dark variant, so the pages follow the theme switch.
+ * GC logs analyzer pages (the web pages and the report of the command line application) - loaded after the shared
+ * /css/app.css, which gives the look, the colors and the dark theme. Only the components that the other tools do not
+ * use are defined here; every color comes from a variable with a dark variant, so the pages follow the theme switch.
  */
 
 :root {

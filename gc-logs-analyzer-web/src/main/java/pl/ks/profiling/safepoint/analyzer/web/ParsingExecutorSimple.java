@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.stereotype.Component;
 import pl.ks.profiling.io.source.LogsSource;
+import pl.ks.profiling.safepoint.analyzer.commons.shared.ParsingMode;
 import pl.ks.profiling.safepoint.analyzer.commons.shared.ParsingProgress;
 import pl.ks.profiling.safepoint.analyzer.commons.shared.StatsService;
 import pl.ks.profiling.safepoint.analyzer.commons.shared.report.JvmLogFile;
@@ -51,28 +52,9 @@ public class ParsingExecutorSimple implements ParsingExecutor {
         executor.submit(() -> {
             log.info("Submitting parsing {} to parser (mode: {})", parsingId, parsingMode);
             try {
-                switch (parsingMode) {
-                    case SHENANDOAH:
-                        statsService.createAllStatsShenandoah(logsSource,
-                                (ParsingProgress p) -> updateParsingProgress(parsingId, p),
-                                (JvmLogFile f) -> storeInRepo(parsingId, f));
-                        break;
-                    case ZGC:
-                        statsService.createAllStatsZgc(logsSource,
-                                (ParsingProgress p) -> updateParsingProgress(parsingId, p),
-                                (JvmLogFile f) -> storeInRepo(parsingId, f));
-                        break;
-                    case JDK8:
-                        statsService.createAllStatsJdk8(logsSource,
-                                (ParsingProgress p) -> updateParsingProgress(parsingId, p),
-                                (JvmLogFile f) -> storeInRepo(parsingId, f));
-                        break;
-                    default:
-                        statsService.createAllStatsUnifiedLogger(logsSource,
-                                (ParsingProgress p) -> updateParsingProgress(parsingId, p),
-                                (JvmLogFile f) -> storeInRepo(parsingId, f));
-                        break;
-                }
+                statsService.createAllStats(parsingMode, logsSource,
+                        (ParsingProgress p) -> updateParsingProgress(parsingId, p),
+                        (JvmLogFile f) -> storeInRepo(parsingId, f));
             } catch (Throwable t) {
                 log.error("Error while processing parsing " + parsingId, t);
                 markAsFailed(parsingId);

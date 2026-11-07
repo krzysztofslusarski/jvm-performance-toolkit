@@ -23,7 +23,7 @@
         </dependency>
         <dependency>
             <groupId>pl.ks.profiling</groupId>
-            <artifactId>common</artifactId>
+            <artifactId>commons</artifactId>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

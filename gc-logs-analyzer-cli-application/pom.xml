@@ -28,6 +28,19 @@
             <groupId>pl.ks.profiling</groupId>
             <artifactId>gc-logs-io</artifactId>
         </dependency>
+        <!-- HTML report: its template, and the stylesheets and scripts copied next to it -->
+        <dependency>
+            <groupId>org.thymeleaf</groupId>
+            <artifactId>thymeleaf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>pl.ks.profiling</groupId>
+            <artifactId>gc-logs-gui-commons</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>pl.ks.profiling</groupId>
+            <artifactId>web-commons</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

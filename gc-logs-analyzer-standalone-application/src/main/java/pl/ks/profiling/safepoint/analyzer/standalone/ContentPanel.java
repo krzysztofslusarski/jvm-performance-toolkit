@@ -26,6 +26,7 @@ import pl.ks.profiling.gui.commons.Page;
 import pl.ks.profiling.gui.commons.PageContent;
 import pl.ks.profiling.gui.commons.Table;
 import pl.ks.profiling.io.TempFileUtils;
+import pl.ks.profiling.xchart.commons.ChartTheme;
 import pl.ks.profiling.xchart.commons.XChartCreator;
 
 import javax.swing.*;
@@ -38,21 +39,31 @@ import java.awt.*;
 import java.util.UUID;
 
 class ContentPanel extends JPanel {
-    private static final Color ALT_ROW_COLOR = new Color(245, 247, 250);
-    private static final Color TABLE_GRID_COLOR = new Color(228, 232, 238);
-
     private final PresentationFontProviderStandalone presentationFontProvider;
     private final XChartCreator xChartCreator;
+    private Page currentPage;
 
     ContentPanel(PresentationFontProviderStandalone presentationFontProvider) {
         this.presentationFontProvider = presentationFontProvider;
         setLayout(new MigLayout("insets 20 24 20 24"));
-        setBackground(Color.WHITE);
+        setBackground(ThemeManager.current().contentBackground);
         this.xChartCreator = new XChartCreator(presentationFontProvider);
     }
 
+    /**
+     * Draws the current page again - the charts are images, so they are drawn in the colors of the new theme.
+     */
+    void applyTheme() {
+        setBackground(ThemeManager.current().contentBackground);
+        if (currentPage != null) {
+            recreate(currentPage);
+        }
+    }
+
     void recreate(Page page) {
+        currentPage = page;
         removeAll();
+        setBackground(ThemeManager.current().contentBackground);
         add(pageTitle(page), "span");
         for (PageContent pageContent : page.getPageContents()) {
             addPageContent(this, pageContent);
@@ -84,7 +95,7 @@ class ContentPanel extends JPanel {
     private JLabel contentDescription(PageContent pageContent) {
         JLabel desc = new JLabel("<html><div width=\"800px\">" + pageContent.getInfo() + "</div></html>");
         desc.setFont(presentationFontProvider.getDefaultFont());
-        desc.setForeground(new Color(80, 90, 100));
+        desc.setForeground(ThemeManager.current().description);
         return desc;
     }
 
@@ -103,7 +114,7 @@ class ContentPanel extends JPanel {
     private JLabel createTitle(String fullName, Font font) {
         JLabel pageTitle = new JLabel(fullName, JLabel.LEFT);
         pageTitle.setFont(font);
-        pageTitle.setForeground(new Color(30, 41, 59));
+        pageTitle.setForeground(ThemeManager.current().heading);
         return pageTitle;
     }
 
@@ -113,13 +124,14 @@ class ContentPanel extends JPanel {
         String title = chartTitle == null ? "" : chartTitle;
         String subTitle = chartTitle == null ? "" : chartTitle.replaceAll("[^a-zA-Z0-9]", "");
         String tmpFilePath = TempFileUtils.getFilePath(subTitle + UUID.randomUUID().toString() + ".jpg");
+        ChartTheme chartTheme = ThemeManager.current().chartTheme;
         switch (chart.getChartType()) {
             case PIE:
-                return chartToImage(tmpFilePath, xChartCreator.createPieChart(chart, title, 1200));
+                return chartToImage(tmpFilePath, xChartCreator.createPieChart(chart, title, 1200, chartTheme));
             case POINTS_OR_LINE:
             case LINE:
             case POINTS:
-                return chartToImage(tmpFilePath, xChartCreator.createXyChart(chart, title, 1200));
+                return chartToImage(tmpFilePath, xChartCreator.createXyChart(chart, title, 1200, chartTheme));
             default:
                 return new JLabel("Unsupported chart type " + chart.getChartType());
         }
@@ -164,15 +176,16 @@ class ContentPanel extends JPanel {
         view.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         view.setShowGrid(false);
         view.setIntercellSpacing(new Dimension(0, 0));
-        view.setGridColor(TABLE_GRID_COLOR);
-        view.setSelectionBackground(new Color(219, 234, 254));
-        view.setSelectionForeground(new Color(30, 41, 59));
-        view.getTableHeader().setBackground(new Color(248, 250, 252));
-        view.getTableHeader().setForeground(new Color(71, 85, 105));
-        view.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, TABLE_GRID_COLOR));
+        Theme theme = ThemeManager.current();
+        view.setGridColor(theme.tableGrid);
+        view.setSelectionBackground(theme.tableSelectionBackground);
+        view.setSelectionForeground(theme.tableSelectionForeground);
+        view.getTableHeader().setBackground(theme.tableHeaderBackground);
+        view.getTableHeader().setForeground(theme.tableHeaderForeground);
+        view.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, theme.tableGrid));
         update(view);
         JScrollPane scrollPane = new JScrollPane(view);
-        scrollPane.setBorder(BorderFactory.createLineBorder(TABLE_GRID_COLOR));
+        scrollPane.setBorder(BorderFactory.createLineBorder(theme.tableGrid));
         return scrollPane;
     }
 
@@ -200,7 +213,8 @@ class ContentPanel extends JPanel {
                 boolean isSelected, boolean hasFocus, int row, int column) {
             Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             if (!isSelected) {
-                c.setBackground(row % 2 == 0 ? Color.WHITE : ALT_ROW_COLOR);
+                Theme theme = ThemeManager.current();
+                c.setBackground(row % 2 == 0 ? theme.tableEvenRow : theme.tableOddRow);
             }
             setBorder(new EmptyBorder(4, 8, 4, 8));
             return c;

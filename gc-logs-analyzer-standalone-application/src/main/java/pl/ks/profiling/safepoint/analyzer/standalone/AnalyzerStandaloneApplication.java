@@ -29,8 +29,6 @@ import pl.ks.profiling.safepoint.analyzer.commons.shared.ParsingProgress;
 import pl.ks.profiling.safepoint.analyzer.commons.shared.StatsService;
 import pl.ks.profiling.safepoint.analyzer.commons.shared.report.JvmLogFile;
 
-import com.formdev.flatlaf.FlatLightLaf;
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -68,6 +66,8 @@ public class AnalyzerStandaloneApplication extends JFrame {
     private JButton loadZgcButton;
     private JButton loadOldButton;
     private JLabel parsingProgressLabel;
+    private JLabel subtitleLabel;
+    private JCheckBox darkModeCheckBox;
     private final DecimalFormat TWO_DECIMAL_DIGITS_FORMAT = new DecimalFormat("##.#");
     private File lastDir;
 
@@ -75,7 +75,7 @@ public class AnalyzerStandaloneApplication extends JFrame {
     }
 
     public void init() throws ClassNotFoundException, UnsupportedLookAndFeelException, InstantiationException, IllegalAccessException {
-        FlatLightLaf.setup();
+        ThemeManager.install();
         UIManager.put("defaultFont", presentationFontProvider.getDefaultFont());
         UIManager.put("Button.arc", 8);
         UIManager.put("Component.arc", 8);
@@ -98,6 +98,14 @@ public class AnalyzerStandaloneApplication extends JFrame {
         loadZgcButton.addActionListener(this::onLoadZgcButtonClicked);
         loadOldButton.addActionListener(this::onLoadOldButtonClicked);
         concatLogsButton.addActionListener(this::onConcatLogsButtonClick);
+
+        darkModeCheckBox = new JCheckBox("Dark mode", ThemeManager.current() == Theme.DARK);
+        darkModeCheckBox.addActionListener(e -> ThemeManager.setDark(darkModeCheckBox.isSelected()));
+        darkModeCheckBox.setToolTipText(ThemeManager.TITLE_BARS_HINT);
+        ThemeManager.onChange(this, () -> {
+            darkModeCheckBox.setSelected(ThemeManager.current() == Theme.DARK);
+            subtitleLabel.setForeground(ThemeManager.current().subtitle);
+        });
 
         quitButton.addActionListener((ActionEvent event) -> {
             System.exit(0);
@@ -126,9 +134,9 @@ public class AnalyzerStandaloneApplication extends JFrame {
         mainPanel.add(titleLabel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 8)));
 
-        JLabel subtitleLabel = new JLabel("Safepoint & GC log file analysis tool");
+        subtitleLabel = new JLabel("Safepoint & GC log file analysis tool");
         subtitleLabel.setFont(presentationFontProvider.getDefaultFont());
-        subtitleLabel.setForeground(new Color(100, 100, 100));
+        subtitleLabel.setForeground(ThemeManager.current().subtitle);
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(subtitleLabel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 24)));
@@ -161,9 +169,10 @@ public class AnalyzerStandaloneApplication extends JFrame {
 
         add(mainPanel, BorderLayout.CENTER);
 
-        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 16, 5));
         bottomPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
         quitButton.setPreferredSize(new Dimension(120, 32));
+        bottomPanel.add(darkModeCheckBox);
         bottomPanel.add(quitButton);
         add(bottomPanel, BorderLayout.PAGE_END);
     }
@@ -448,6 +457,8 @@ public class AnalyzerStandaloneApplication extends JFrame {
     }
 
     public static void main(String[] args) {
+        // Before anything touches AWT
+        ThemeManager.configureMacOsTitleBars();
         var ctx = new SpringApplicationBuilder(AnalyzerStandaloneApplication.class)
                 .headless(false).run(args);
 

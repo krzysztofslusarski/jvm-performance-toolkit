@@ -6,5 +6,5 @@
 **/*.iml
 **/.DS_Store
 images
-gc-log-samples
-gc-log-generator/docker
+gc-logs-samples
+gc-logs-generator/docker
