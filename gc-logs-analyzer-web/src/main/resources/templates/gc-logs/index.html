@@ -51,7 +51,7 @@
         <div class="card-body collapse" id="dockerDetails">
             <p>Quickly run the application on your computer:</p>
             <pre><code>docker run -it -p 8079:8079 -v /var/uploads:/uploads [[${dockerImage}]]</code></pre>
-            <p class="form-hint">Create directory where your logs will be uploaded (/var/uploads) before running this command.</p>
+            <p class="form-hint">Create the directory where your logs will be uploaded before running this command - the application runs as the user with uid 1001, so it has to be able to write there: <kbd>mkdir -p /var/uploads &amp;&amp; chown 1001 /var/uploads</kbd></p>
             <p class="mt-2">Application will be available on <a href="http://localhost:8079" target="_blank">http://localhost:8079</a></p>
 
             <h5 class="section-subtitle">Configuration Options</h5>

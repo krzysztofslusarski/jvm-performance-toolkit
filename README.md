@@ -22,13 +22,21 @@ page leads to the JFR viewer, the collapsed stack viewer and the GC logs analyze
 The `gclogs-com-site` profile (`--spring.profiles.active=gclogs-com-site`) is the [gclogs.com](https://gclogs.com) site: only
 the GC logs analyzer is available there and it owns the main page.
 
-## How to configure
-Viewer is Spring Boot application, you can create `application.yml` with:
+## How to run in Docker
+The image is built from the sources (a local Maven or JDK is not needed):
 
-```yaml
-server:
-  port: 8079 
+```shell script
+docker build -t gclogs/toolkit-web-application:1.0-SNAPSHOT .
+mkdir -p /var/uploads && chown 1001 /var/uploads
+docker run -it -p 8079:8079 -v /var/uploads:/uploads gclogs/toolkit-web-application:1.0-SNAPSHOT
 ```
+
+* the application runs as the user with uid 1001 - the directory mounted as `/uploads` (logs uploaded to the
+  GC logs analyzer) has to be writable for it
+* the heap can use 75% of the memory available to the container (`JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=75`),
+  override `JAVA_TOOL_OPTIONS` to change it
+* `-e SPRING_PROFILES_ACTIVE=gclogs-com-site` runs the gclogs.com site, its access log is written to `/logs`;
+  the other options are environment variables described in the [GC logs analyzer](#gc-logs-analyzer) section
 
 ## Console viewer
 If you cannot (or do not want to) open a browser, there is a full screen console viewer for JFR files:
@@ -190,13 +198,13 @@ It is available as:
 * a command line application that writes an HTML report with charts to the `report` directory:
   `java -jar gc-logs-analyzer-cli-application/target/gc-logs-analyzer-cli.jar <log file>`
 
-The web analyzer can be configured with environment variables (handy in Docker - the image is built with the
-`spring-boot:build-image` goal of `toolkit-web-application`):
+The web analyzer can be configured with environment variables (handy in [Docker](#how-to-run-in-docker)):
 
 | Variable                   | Default        | Description                                                      |
 |----------------------------|----------------|------------------------------------------------------------------|
 | `SERVER_PORT`              | `8079`         | HTTP port                                                        |
-| `UPLOAD_DIR`               | temp directory | where the uploaded logs are stored                               |
+| `UPLOAD_DIR`               | temp directory | where the uploaded logs are stored, `/uploads` in Docker         |
+| `ACCESS_LOG_DIR`           | `/home/pasqal/logs` | access log directory of the `gclogs-com-site` profile, `/logs` in Docker |
 | `MAX_REQUEST_SIZE`         | `20480MB`      | maximum size of an uploaded file and request                     |
 | `NUMBER_OF_WORKER_THREADS` | `4`            | threads parsing the uploaded logs, more requests are queued      |
 | `REPORT_REMOVE_AFTER_READ` | `false`        | report is removed from memory once it is read                    |

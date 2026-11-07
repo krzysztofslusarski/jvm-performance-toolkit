@@ -39,7 +39,7 @@ parsing:
 
 # Used only on the gclogs.com site (gclogs-com-site profile), where the GC logs analyzer owns the root page
 indexPageAvailable: false
-dockerImage: @spring-boot.build-image.imageName@
+dockerImage: @docker.image.name@
 
 
 #logging:

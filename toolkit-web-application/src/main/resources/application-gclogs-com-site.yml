@@ -28,7 +28,7 @@ server:
   port: 28371
   tomcat:
     accesslog:
-      directory: /home/pasqal/logs
+      directory: ${ACCESS_LOG_DIR:/home/pasqal/logs}
       enabled: true
       file-date-format: .yyyy-MM-dd
       pattern: "%t [%h] [%{X-Forwarded-For}i] [%r] [%s] [%b bytes] [%D ms] [%{User-Agent}i] [%{Referer}i] [%I] [%S] [%{Content-Type}o]"
@@ -38,7 +38,8 @@ server:
       rotate: true
       suffix: .log
 
-safepoint.files.dir: /home/pasqal/analyzer-inputs/
+# The paths of the gclogs.com server, overridden in Docker (see Dockerfile)
+safepoint.files.dir: ${UPLOAD_DIR:/home/pasqal/analyzer-inputs/}
 
 parsing:
     results:

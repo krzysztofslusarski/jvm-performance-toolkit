@@ -1,0 +1,10 @@
+# Only the sources of the Maven modules are needed to build the image
+.git
+.idea
+.claude
+**/target
+**/*.iml
+**/.DS_Store
+images
+gc-log-samples
+gc-log-generator/docker

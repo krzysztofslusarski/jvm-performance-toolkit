@@ -12,8 +12,8 @@
     <artifactId>toolkit-web-application</artifactId>
 
     <properties>
-        <!-- Docker image built with spring-boot:build-image, shown on the GC logs analyzer index page (gclogs-com-site profile) -->
-        <spring-boot.build-image.imageName>gclogs/${project.artifactId}:${project.version}</spring-boot.build-image.imageName>
+        <!-- Name of the image built from the Dockerfile, shown on the GC logs analyzer index page (gclogs-com-site profile) -->
+        <docker.image.name>gclogs/${project.artifactId}:${project.version}</docker.image.name>
     </properties>
 
     <dependencies>
