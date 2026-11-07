@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.LongAccumulator;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -59,6 +60,10 @@ public class JfrParsedFile {
     private final boolean crossFileSpanMatching;
     private Instant minEventDate;
     private Instant maxEventDate;
+    // Times (in milliseconds, as every event time is) of the events dropped by the parse filter - they still belong
+    // to the recording, so they count for its bounds
+    private final LongAccumulator droppedEventsMinTime = new LongAccumulator(Math::min, Long.MAX_VALUE);
+    private final LongAccumulator droppedEventsMaxTime = new LongAccumulator(Math::max, Long.MIN_VALUE);
 
     void addFilename(String filename) {
         filenames.add(filename);
@@ -110,6 +115,12 @@ public class JfrParsedFile {
         }
     }
 
+    void eventDropped(Instant eventTime) {
+        long time = eventTime.toEpochMilli();
+        droppedEventsMinTime.accumulate(time);
+        droppedEventsMaxTime.accumulate(time);
+    }
+
     String getCanonicalString(final JfrParsedFile jfrParsedFile, String str) {
         String canonical = canonicalStrings.computeIfAbsent(str, aStr -> unifyLambdaAwareString(jfrParsedFile, aStr));
         return canonical == null ? canonicalStrings.get(str) : canonical;
@@ -125,14 +136,16 @@ public class JfrParsedFile {
                 getMinDate(wallClockSamples, JfrParsedExecutionSampleEvent::getEventTime),
                 getMinDate(allocationSamples, JfrParsedAllocationEvent::getEventTime),
                 getMinDate(lockSamples, JfrParsedLockEvent::getEventTime),
-                getMinDate(spans, JfrSpanInfo::getEventTime)
+                getMinDate(spans, JfrSpanInfo::getEventTime),
+                droppedEventsMinTime.get() == Long.MAX_VALUE ? Instant.MAX : Instant.ofEpochMilli(droppedEventsMinTime.get())
         ), identity());
         maxEventDate = getMaxDate(List.of(
                 getMaxDate(executionSamples, JfrParsedExecutionSampleEvent::getEventTime),
                 getMaxDate(wallClockSamples, JfrParsedExecutionSampleEvent::getEventTime),
                 getMaxDate(allocationSamples, JfrParsedAllocationEvent::getEventTime),
                 getMaxDate(lockSamples, JfrParsedLockEvent::getEventTime),
-                getMaxDate(spans, JfrSpanInfo::getEventTime)
+                getMaxDate(spans, JfrSpanInfo::getEventTime),
+                droppedEventsMaxTime.get() == Long.MIN_VALUE ? Instant.MIN : Instant.ofEpochMilli(droppedEventsMaxTime.get())
         ), identity());
     }
 

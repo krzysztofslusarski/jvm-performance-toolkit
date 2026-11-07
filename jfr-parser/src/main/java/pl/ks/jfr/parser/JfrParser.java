@@ -19,7 +19,11 @@ import java.nio.file.Path;
 import java.util.List;
 
 public interface JfrParser {
-    JfrParsedFile parse(List<Path> jfrFiles, boolean oldAsyncProfiler, boolean wallClockExactTime, boolean unifyLambdas, boolean throwOnErroredFile, boolean crossFileSpanMatching);
+    default JfrParsedFile parse(List<Path> jfrFiles, boolean oldAsyncProfiler, boolean wallClockExactTime, boolean unifyLambdas, boolean throwOnErroredFile, boolean crossFileSpanMatching) {
+        return parse(jfrFiles, oldAsyncProfiler, wallClockExactTime, unifyLambdas, throwOnErroredFile, crossFileSpanMatching, JfrParseFilter.NONE);
+    }
+
+    JfrParsedFile parse(List<Path> jfrFiles, boolean oldAsyncProfiler, boolean wallClockExactTime, boolean unifyLambdas, boolean throwOnErroredFile, boolean crossFileSpanMatching, JfrParseFilter parseFilter);
 
     JfrParsedFile trim(JfrParsedFile parent, String method, JfrParsedFile.Direction direction);
 }

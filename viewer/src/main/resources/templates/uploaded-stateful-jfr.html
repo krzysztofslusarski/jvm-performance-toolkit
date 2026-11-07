@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="/css/app.css" rel="stylesheet">
     <script src="/js/theme.js"></script>
+    <script src="/js/filters.js"></script>
 </head>
 
 <body th:data-current="${currentId}" style="overflow: hidden;">
@@ -21,6 +22,11 @@
             <a href="/upload-stateful-jfr">JFR Viewer</a>
         </div>
         <div th:if="${customName != null}" class="sidebar-file-name" th:text="${customName}" th:title="${customName}"></div>
+        <div th:if="${!loadFilters.isEmpty()}" class="sidebar-load-filters"
+             title="These filters were applied while loading - the other events are not in memory">
+            <div class="sidebar-load-filters-title">Loaded with filters</div>
+            <div th:each="loadFilter : ${loadFilters}" th:text="${loadFilter}"></div>
+        </div>
 
         <!-- View Mode -->
         <div class="sidebar-section">
@@ -137,162 +143,7 @@
                 Filters
                 <svg class="chevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
             </div>
-            <div class="section-body">
-                <!-- Thread filter (equals) -->
-                <div class="filter-group">
-                    <div class="checkbox-row">
-                        <input id="threadFilterOn" name="threadFilterOn" type="checkbox" onchange="toggleFilter('threadFilterContent', this)"/>
-                        <label for="threadFilterOn">Thread (equals)</label>
-                    </div>
-                    <div id="threadFilterContent" class="filter-inputs">
-                        <input id="threadFilter" name="threadFilter" type="text" placeholder="Thread name"/>
-                    </div>
-                </div>
-
-                <!-- Thread filter (contains) -->
-                <div class="filter-group">
-                    <div class="checkbox-row">
-                        <input id="threadFilterContainsOn" name="threadFilterContainsOn" type="checkbox" onchange="toggleFilter('threadFilterContainsContent', this)"/>
-                        <label for="threadFilterContainsOn">Thread (contains)</label>
-                    </div>
-                    <div id="threadFilterContainsContent" class="filter-inputs">
-                        <input id="threadFilterContains" name="threadFilterContains" type="text" placeholder="Thread name part"/>
-                    </div>
-                </div>
-
-                <!-- Stack trace filter (contains) - multiple -->
-                <div class="filter-group">
-                    <div class="checkbox-row">
-                        <input id="stackTraceFilterOn" name="stackTraceFilterOn" type="checkbox" onchange="toggleFilter('stackTraceFilterContent', this)"/>
-                        <label for="stackTraceFilterOn">Stack trace (contains)</label>
-                    </div>
-                    <div id="stackTraceFilterContent" class="filter-inputs">
-                        <div id="stackTraceFilterList">
-                            <div class="filter-row multi-filter-row">
-                                <input name="stackTraceFilter_0" type="text" class="stack-trace-filter-input" placeholder="e.g. com.example"/>
-                                <button class="btn-remove-filter" onclick="removeFilterRow(this, 'stackTraceFilterList')" style="display:none">
-                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                                </button>
-                            </div>
-                        </div>
-                        <button class="btn-add-filter" onclick="addFilterRow('stackTraceFilterList', 'stackTraceFilter')">
-                            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                            Add filter
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Stack trace filter (not contains) - multiple -->
-                <div class="filter-group">
-                    <div class="checkbox-row">
-                        <input id="stackTraceNotContainsFilterOn" name="stackTraceNotContainsFilterOn" type="checkbox" onchange="toggleFilter('stackTraceNotContainsFilterContent', this)"/>
-                        <label for="stackTraceNotContainsFilterOn">Stack trace (not contains)</label>
-                    </div>
-                    <div id="stackTraceNotContainsFilterContent" class="filter-inputs">
-                        <div id="stackTraceNotContainsFilterList">
-                            <div class="filter-row multi-filter-row">
-                                <input name="stackTraceNotContainsFilter_0" type="text" class="stack-trace-not-contains-filter-input" placeholder="e.g. sun.misc"/>
-                                <button class="btn-remove-filter" onclick="removeFilterRow(this, 'stackTraceNotContainsFilterList')" style="display:none">
-                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                                </button>
-                            </div>
-                        </div>
-                        <button class="btn-add-filter" onclick="addFilterRow('stackTraceNotContainsFilterList', 'stackTraceNotContainsFilter')">
-                            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                            Add filter
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Span -->
-                <div class="filter-group">
-                    <div class="checkbox-row">
-                        <input id="spanFilterEqualsOn" name="spanFilterEqualsOn" type="checkbox" onchange="toggleFilter('spanFilterEqualsContent', this)"/>
-                        <label for="spanFilterEqualsOn">Span (equals)</label>
-                    </div>
-                    <div id="spanFilterEqualsContent" class="filter-inputs">
-                        <input id="spanFilterEquals" name="spanFilterEquals" type="text" placeholder="Span"/>
-                    </div>
-                </div>
-
-                <!-- Span (contains) - multiple -->
-                <div class="filter-group">
-                    <div class="checkbox-row">
-                        <input id="spanFilterContainsOn" name="spanFilterContainsOn" type="checkbox" onchange="toggleFilter('spanFilterContainsContent', this)"/>
-                        <label for="spanFilterContainsOn">Span (contains)</label>
-                    </div>
-                    <div id="spanFilterContainsContent" class="filter-inputs">
-                        <div id="spanFilterContainsList">
-                            <div class="filter-row multi-filter-row">
-                                <input name="spanFilterContains_0" type="text" placeholder="e.g. checkout"/>
-                                <button class="btn-remove-filter" onclick="removeFilterRow(this, 'spanFilterContainsList')" style="display:none">
-                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                                </button>
-                            </div>
-                        </div>
-                        <button class="btn-add-filter" onclick="addFilterRow('spanFilterContainsList', 'spanFilterContains', 'e.g. checkout')">
-                            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                            Add filter
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Access log filter -->
-                <div class="filter-group">
-                    <div class="checkbox-row">
-                        <input id="endDurationOn" name="endDurationOn" type="checkbox" onchange="toggleTimeFilter('endDurationContent', this)"/>
-                        <label for="endDurationOn">Access log filter</label>
-                    </div>
-                    <div id="endDurationContent" class="filter-inputs">
-                        <input id="endDate" name="endDate" type="text" placeholder="End date"/>
-                        <input id="endDateDateTimeFormat" name="endDateDateTimeFormat" type="text" value="dd/MMM/yyyy:HH:mm:ss Z" placeholder="Date format" style="margin-top: 0.375rem"/>
-                        <input id="duration" name="duration" type="text" placeholder="Duration (ms)" style="margin-top: 0.375rem"/>
-                        <input id="localeLanguage" name="localeLanguage" type="text" value="EN" placeholder="Locale" style="margin-top: 0.375rem"/>
-                    </div>
-                </div>
-
-                <!-- Start/end timestamp -->
-                <div class="filter-group">
-                    <div class="checkbox-row">
-                        <input id="startEndTimestampOn" name="startEndTimestampOn" type="checkbox" onchange="toggleTimeFilter('startEndTimestampContent', this)"/>
-                        <label for="startEndTimestampOn">Start/end timestamp</label>
-                    </div>
-                    <div id="startEndTimestampContent" class="filter-inputs">
-                        <input id="startTs" name="startTs" type="text" placeholder="Start timestamp (s)"/>
-                        <input id="endTs" name="endTs" type="text" placeholder="End timestamp (s)" style="margin-top: 0.375rem"/>
-                    </div>
-                </div>
-
-                <!-- Warmup/cooldown -->
-                <div class="filter-group">
-                    <div class="checkbox-row">
-                        <input id="warmupCooldownOn" name="warmupCooldownOn" type="checkbox" onchange="toggleTimeFilter('warmupCooldownContent', this)"/>
-                        <label for="warmupCooldownOn">Warmup / cooldown</label>
-                    </div>
-                    <div id="warmupCooldownContent" class="filter-inputs">
-                        <input id="warmup" name="warmup" type="text" placeholder="Warmup (s)"/>
-                        <input id="cooldown" name="cooldown" type="text" placeholder="Cooldown (s)" style="margin-top: 0.375rem"/>
-                    </div>
-                </div>
-
-                <!-- Warmup/duration -->
-                <div class="filter-group">
-                    <div class="checkbox-row">
-                        <input id="warmupDurationOn" name="warmupDurationOn" type="checkbox" onchange="toggleTimeFilter('warmupDurationContent', this)"/>
-                        <label for="warmupDurationOn">Warmup / duration</label>
-                    </div>
-                    <div id="warmupDurationContent" class="filter-inputs">
-                        <input id="wdWarmup" name="wdWarmup" type="text" placeholder="Warmup (s)"/>
-                        <input id="wdDuration" name="wdDuration" type="text" placeholder="Duration (s)" style="margin-top: 0.375rem"/>
-                    </div>
-                </div>
-
-                <!-- Consume CPU -->
-                <div class="checkbox-row">
-                    <input id="consumeCpuOn" name="consumeCpuOn" type="checkbox"/>
-                    <label for="consumeCpuOn">Consume CPU only</label>
-                </div>
-            </div>
+            <div class="section-body" th:insert="~{fragments/filters :: filters}"></div>
         </div>
 
         <!-- Additional Levels -->
@@ -367,67 +218,6 @@
         titleEl.classList.toggle('collapsed');
         var body = titleEl.nextElementSibling;
         if (body) body.style.display = body.style.display === 'none' ? '' : 'none';
-    }
-
-    function toggleFilter(contentId, checkbox) {
-        var el = document.getElementById(contentId);
-        if (el) el.classList.toggle('visible', checkbox.checked);
-    }
-
-    var timeFilterIds = ['endDurationContent', 'startEndTimestampContent', 'warmupCooldownContent', 'warmupDurationContent'];
-    var timeCheckboxIds = ['endDurationOn', 'startEndTimestampOn', 'warmupCooldownOn', 'warmupDurationOn'];
-
-    function toggleTimeFilter(contentId, checkbox) {
-        // Time filters are mutually exclusive
-        timeFilterIds.forEach(function (id) {
-            var el = document.getElementById(id);
-            if (el) el.classList.remove('visible');
-        });
-        timeCheckboxIds.forEach(function (id) {
-            var cb = document.getElementById(id);
-            if (cb && cb !== checkbox) cb.checked = false;
-        });
-        if (checkbox.checked) {
-            var el = document.getElementById(contentId);
-            if (el) el.classList.add('visible');
-        }
-    }
-
-    // ---- Multi-filter rows ----
-    function addFilterRow(listId, prefix, placeholder) {
-        var list = document.getElementById(listId);
-        var rows = list.querySelectorAll('.multi-filter-row');
-        var index = rows.length;
-        var div = document.createElement('div');
-        div.className = 'filter-row multi-filter-row';
-        div.innerHTML = '<input name="' + prefix + '_' + index + '" type="text" placeholder="' + (placeholder || 'e.g. com.example') + '"/>' +
-            '<button class="btn-remove-filter" onclick="removeFilterRow(this, \'' + listId + '\')">' +
-            '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
-        list.appendChild(div);
-        updateRemoveButtons(listId);
-    }
-
-    function removeFilterRow(btn, listId) {
-        btn.closest('.multi-filter-row').remove();
-        reindexFilterRows(listId);
-        updateRemoveButtons(listId);
-    }
-
-    function reindexFilterRows(listId) {
-        var prefix = listId.replace(/List$/, '');
-        var rows = document.querySelectorAll('#' + listId + ' .multi-filter-row');
-        rows.forEach(function (row, index) {
-            var input = row.querySelector('input[type=text]');
-            if (input) input.name = prefix + '_' + index;
-        });
-    }
-
-    function updateRemoveButtons(listId) {
-        var rows = document.querySelectorAll('#' + listId + ' .multi-filter-row');
-        rows.forEach(function (row) {
-            var btn = row.querySelector('.btn-remove-filter');
-            if (btn) btn.style.display = rows.length <= 1 ? 'none' : '';
-        });
     }
 
     // ---- Page/view switching ----

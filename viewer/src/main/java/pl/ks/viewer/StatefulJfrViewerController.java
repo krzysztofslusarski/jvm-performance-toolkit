@@ -49,6 +49,11 @@ class StatefulJfrViewerController {
         return uuid == null ? null : jfrViewerService.getCustomName(uuid);
     }
 
+    @ModelAttribute("loadFilters")
+    List<String> loadFilters(@RequestParam(value = "id", required = false) UUID uuid) {
+        return uuid == null ? List.of() : jfrViewerService.getLoadFilters(uuid);
+    }
+
     @GetMapping("/upload-stateful-jfr")
     String uploadJfr(Model model) {
         model.addAttribute("files", jfrViewerService.getFiles());
@@ -62,8 +67,12 @@ class StatefulJfrViewerController {
                   @RequestParam(value = "wallClockExactTime", required = false) Boolean wallClockExactTime,
                   @RequestParam(value = "throwOnErroredFile", required = false) Boolean throwOnErroredFile,
                   @RequestParam(value = "unifyLambdas", required = false) Boolean unifyLambdas,
-                  @RequestParam(value = "crossFileSpanMatching", required = false) Boolean crossFileSpanMatching
+                  @RequestParam(value = "crossFileSpanMatching", required = false) Boolean crossFileSpanMatching,
+                  @RequestParam Map<String, String> params
     ) throws Exception {
+        // The upload form has the same filter fields as the viewer - read before the files are saved, so that
+        // a malformed number fails at once
+        JfrViewerFilterAndLevelConfig loadFilters = createConfig(params);
         List<String> savedCopies = new ArrayList<>(files.length);
         for (MultipartFile file : files) {
             String originalFilename = file.getOriginalFilename();
@@ -74,7 +83,8 @@ class StatefulJfrViewerController {
         UUID uuid = jfrViewerService.parseNewFiles(savedCopies, oldAsyncProfiler != null && oldAsyncProfiler,
                 wallClockExactTime != null && wallClockExactTime, unifyLambdas != null && unifyLambdas,
                 throwOnErroredFile != null && throwOnErroredFile,
-                crossFileSpanMatching != null && crossFileSpanMatching);
+                crossFileSpanMatching != null && crossFileSpanMatching,
+                loadFilters);
         jfrViewerService.setCustomName(uuid, customName);
         return uploadJfr(model);
     }

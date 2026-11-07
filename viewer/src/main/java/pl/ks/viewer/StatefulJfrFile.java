@@ -14,6 +14,7 @@ public class StatefulJfrFile {
     String customName;
     Instant parseStartDate;
     List<String> filenames;
+    List<String> loadFilters;
     String methodName;
     JfrParsedFile.Direction direction;
 }
