@@ -8,11 +8,11 @@
     <artifactId>parent</artifactId>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>viewer</module>
+        <module>jfr-viewer-web</module>
         <module>jfr-parser</module>
         <module>common</module>
-        <module>viewer-application</module>
-        <module>cli-application</module>
+        <module>toolkit-web-application</module>
+        <module>jfr-viewer-cli-application</module>
     </modules>
 
     <parent>
@@ -102,7 +102,7 @@
             </dependency>
             <dependency>
                 <groupId>pl.ks.profiling</groupId>
-                <artifactId>viewer</artifactId>
+                <artifactId>jfr-viewer-web</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

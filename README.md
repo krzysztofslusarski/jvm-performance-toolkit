@@ -12,7 +12,7 @@ mvn clean package
 ```
 
 ## How to run
-`java -jar viewer-application/target/viewer-application.jar`
+`java -jar toolkit-web-application/target/toolkit-web-application.jar`
 
 Java should point to JDK 11. After you run it, viewer is available on `http://localhost:8079/`.
 
@@ -28,7 +28,7 @@ server:
 If you cannot (or do not want to) open a browser, there is a full screen console viewer for JFR files:
 
 ```shell script
-java -jar cli-application/target/jfr-cli.jar [options] <file.jfr> [<file.jfr> ...]
+java -jar jfr-viewer-cli-application/target/jfr-cli.jar [options] <file.jfr> [<file.jfr> ...]
 ```
 
 It gives you the same four pages as the web viewer - flame graph, total time table, self time table and
