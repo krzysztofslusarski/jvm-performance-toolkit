@@ -32,6 +32,8 @@
     --icon-jfr-fg: #4f46e5;
     --icon-collapsed-bg: #ecfdf5;
     --icon-collapsed-fg: #059669;
+    --icon-gc-bg: #fff7ed;
+    --icon-gc-fg: #ea580c;
     --focus-ring: rgba(79, 70, 229, 0.1);
     --match-bg: #ee00ee;
 }
@@ -64,6 +66,8 @@
     --icon-jfr-fg: #a5b4fc;
     --icon-collapsed-bg: #064e3b;
     --icon-collapsed-fg: #6ee7b7;
+    --icon-gc-bg: #431407;
+    --icon-gc-fg: #fdba74;
     --focus-ring: rgba(129, 140, 248, 0.2);
     --match-bg: #c026d3;
 }
@@ -455,6 +459,7 @@ table.data-table th.text-right { text-align: right; }
 }
 .feature-card .icon-jfr { background: var(--icon-jfr-bg); color: var(--icon-jfr-fg); }
 .feature-card .icon-collapsed { background: var(--icon-collapsed-bg); color: var(--icon-collapsed-fg); }
+.feature-card .icon-gc { background: var(--icon-gc-bg); color: var(--icon-gc-fg); }
 .feature-card h3 { margin-bottom: 0.5rem; }
 .feature-card p { color: var(--text-secondary); font-size: 0.875rem; margin: 0; }
 

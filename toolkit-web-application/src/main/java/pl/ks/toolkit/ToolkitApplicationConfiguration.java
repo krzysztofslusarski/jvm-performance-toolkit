@@ -17,10 +17,24 @@ package pl.ks.toolkit;
 
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
+import pl.ks.profiling.safepoint.analyzer.web.GcLogsAnalyzerWebConfiguration;
 
+/**
+ * Registers the tools hosted by the application. The prod profile is the gclogs.com deployment - only the GC logs
+ * analyzer is available there.
+ */
 @Configuration(proxyBeanMethods = false)
-@ComponentScan({
-        "pl.ks.jfr",
+@Import({
+        GcLogsAnalyzerWebConfiguration.class,
 })
 class ToolkitApplicationConfiguration {
+    @Profile("!prod")
+    @Configuration(proxyBeanMethods = false)
+    @ComponentScan({
+            "pl.ks.jfr",
+    })
+    static class JfrViewerConfiguration {
+    }
 }

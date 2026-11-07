@@ -8,17 +8,33 @@
     <artifactId>parent</artifactId>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>jfr-viewer-web</module>
-        <module>jfr-parser</module>
+        <!-- Shared -->
         <module>common</module>
-        <module>toolkit-web-application</module>
+        <module>toolkit-web-commons</module>
+
+        <!-- JFR viewer -->
+        <module>jfr-parser</module>
+        <module>jfr-viewer-web</module>
         <module>jfr-viewer-cli-application</module>
+
+        <!-- GC logs analyzer -->
+        <module>gc-logs-io</module>
+        <module>gc-logs-gui-commons</module>
+        <module>gc-logs-xchart</module>
+        <module>gc-logs-analyzer-commons</module>
+        <module>gc-logs-analyzer-web</module>
+        <module>gc-logs-analyzer-cli-application</module>
+        <module>gc-logs-analyzer-standalone-application</module>
+        <module>gc-log-generator</module>
+
+        <!-- Web application with all the tools -->
+        <module>toolkit-web-application</module>
     </modules>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.6.3</version>
+        <version>3.4.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -28,13 +44,18 @@
         <java.version>17</java.version>
         <commons-math3.version>3.2</commons-math3.version>
         <poi.version>4.1.0</poi.version>
-        <commons-compress.version>1.19</commons-compress.version>
+        <commons-compress.version>1.21</commons-compress.version>
         <xz.version>1.8</xz.version>
         <commons-collections4.version>4.1</commons-collections4.version>
         <xchart.version>3.6.0</xchart.version>
         <miglayout-swing.version>5.0</miglayout-swing.version>
         <flightrecorder.version>8.1.0</flightrecorder.version>
         <lanterna.version>3.1.2</lanterna.version>
+        <guava.version>30.1-jre</guava.version>
+        <flatlaf.version>3.2.5</flatlaf.version>
+        <axios.version>0.21.1</axios.version>
+        <spock.version>2.3-groovy-4.0</spock.version>
+        <gmavenplus-plugin.version>3.0.0</gmavenplus-plugin.version>
     </properties>
 
     <dependencyManagement>
@@ -89,10 +110,36 @@
                 <artifactId>lanterna</artifactId>
                 <version>${lanterna.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.formdev</groupId>
+                <artifactId>flatlaf</artifactId>
+                <version>${flatlaf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.webjars.npm</groupId>
+                <artifactId>axios</artifactId>
+                <version>${axios.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.spockframework</groupId>
+                <artifactId>spock-core</artifactId>
+                <version>${spock.version}</version>
+                <scope>test</scope>
+            </dependency>
 
             <dependency>
                 <groupId>pl.ks.profiling</groupId>
                 <artifactId>common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pl.ks.profiling</groupId>
+                <artifactId>toolkit-web-commons</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -103,6 +150,31 @@
             <dependency>
                 <groupId>pl.ks.profiling</groupId>
                 <artifactId>jfr-viewer-web</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pl.ks.profiling</groupId>
+                <artifactId>gc-logs-io</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pl.ks.profiling</groupId>
+                <artifactId>gc-logs-gui-commons</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pl.ks.profiling</groupId>
+                <artifactId>gc-logs-xchart</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pl.ks.profiling</groupId>
+                <artifactId>gc-logs-analyzer-commons</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pl.ks.profiling</groupId>
+                <artifactId>gc-logs-analyzer-web</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>
@@ -118,6 +190,25 @@
     </dependencies>
 
     <build>
+        <pluginManagement>
+            <plugins>
+                <!-- Compiles the Spock specifications (Groovy) of the modules that have them -->
+                <plugin>
+                    <groupId>org.codehaus.gmavenplus</groupId>
+                    <artifactId>gmavenplus-plugin</artifactId>
+                    <version>${gmavenplus-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>generateStubs</goal>
+                                <goal>compile</goal>
+                                <goal>compileTests</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -125,6 +216,16 @@
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <includes>
+                        <include>**/*Test</include>
+                        <include>**/*Spec</include>
+                    </includes>
                 </configuration>
             </plugin>
         </plugins>

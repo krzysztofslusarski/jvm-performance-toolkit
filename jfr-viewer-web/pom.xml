@@ -10,18 +10,6 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jfr-viewer-web</artifactId>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>16</source>
-                    <target>16</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 
     <dependencies>
         <dependency>
@@ -63,6 +51,10 @@
         <dependency>
             <groupId>pl.ks.profiling</groupId>
             <artifactId>jfr-parser</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>pl.ks.profiling</groupId>
+            <artifactId>toolkit-web-commons</artifactId>
         </dependency>
     </dependencies>
 </project>

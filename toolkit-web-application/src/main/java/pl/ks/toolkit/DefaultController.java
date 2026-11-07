@@ -15,10 +15,15 @@
  */
 package pl.ks.toolkit;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
+/**
+ * Landing page with every tool - in the prod profile (gclogs.com) the root page belongs to the GC logs analyzer.
+ */
 @Controller
+@Profile("!prod")
 class DefaultController {
     @GetMapping("/")
     String defaultPage() {

@@ -1,0 +1,347 @@
+<!DOCTYPE HTML>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Upload - GC Log Analyzer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="/css/app.css" rel="stylesheet">
+    <link href="/css/gc-logs.css" rel="stylesheet">
+    <script src="/js/theme.js"></script>
+    <script type="text/javascript" th:src="@{/webjars/jquery/2.2.4/jquery.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/axios/0.21.1/dist/axios.min.js}"></script>
+</head>
+<body>
+<button class="theme-toggle theme-toggle-fixed" data-theme-toggle aria-label="Toggle dark mode"></button>
+<div class="container">
+    <div class="page-header text-center">
+        <h1><a href="/" style="color: inherit; text-decoration: none;">Safepoint &amp; GC Log Analyzer</a></h1>
+        <p>Upload your JVM GC and safepoint logs for analysis</p>
+    </div>
+
+    <div class="alert alert-warning">
+        This page is under heavy development. If you have any issues, contact <a href="mailto:ks@gclogs.com">ks@gclogs.com</a>.
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h4>Before you upload</h4>
+            <ul>
+                <li>Logs from <mark>JDK 11, 17, 25 and 27</mark> &mdash; <mark>work with the flags below</mark>, tested with Parallel,
+                    G1, ZGC (JDK 17+) and Shenandoah (also generational on JDK 25+) on Linux and macOS, with both dot and comma
+                    decimal separators (e.g. the <code>pl_PL</code> locale).</li>
+                <li>Logs from JDK 9, 10 and the versions between the tested ones &mdash; should work.</li>
+                <li>Logs from <mark>JDK 8</mark> &mdash; GC logs of G1 and Parallel and safepoint statistics, with the flags below.
+                    Choose <mark>JDK 8</mark> in the upload form.</li>
+                <li>CMS is not supported (JDK 8 CMS logs do not work, JDK 9&ndash;13 CMS logs have not been tested).</li>
+                <li>Choose the JDK and the collector that produced the logs in the upload form (the <code>gcCollector</code> field
+                    with cURL).</li>
+                <li><mark>Max <span th:text="${maxFileSize.toMegabytes()}"/>MB file (after compression).</mark></li>
+                <li>For JDK 9+ decorators: level, tags, time, uptime are needed. Check sample Xlog configuration below.</li>
+                <li>You can add many log files in one zip/7z archive. Files will be ordered by the uptime of their first line
+                    (JDK 8 files keep the archive order).</li>
+            </ul>
+            <div class="text-center mt-2">
+                <button class="btn btn-primary btn-lg" id="show-upload">
+                    I have read this &mdash; show upload form
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3" id="real-import" style="display: none;">
+        <div class="card-header" style="cursor: default;">
+            Upload File
+        </div>
+        <div class="card-body">
+            <form id="fileUploadForm">
+                <div class="form-group">
+                    <label for="inputFile">File to upload</label>
+                    <input type="file" name="file" id="inputFile" class="form-input"/>
+                    <p class="form-hint">Compress logs <span class="font-bold">(*.zip, *.gz, *.xz, *.7z)</span> for fast uploads.</p>
+                </div>
+                <div class="form-group">
+                    <label for="fileGcCollector">JDK and GC collector</label>
+                    <select class="form-input w-auto" id="fileGcCollector">
+                        <option value="G1_AND_PARALLEL" selected>JDK 9+ &mdash; G1 / Parallel</option>
+                        <option value="SHENANDOAH">JDK 9+ &mdash; Shenandoah</option>
+                        <option value="ZGC">JDK 9+ &mdash; ZGC</option>
+                        <option value="JDK8">JDK 8 &mdash; G1 / Parallel</option>
+                    </select>
+                </div>
+                <div class="progress" style="display: none;">
+                    <div class="progress-bar" style="width: 0%"></div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-1">Upload file</button>
+            </form>
+        </div>
+
+        <div class="card-header" style="cursor: default;">
+            Upload from Clipboard
+        </div>
+        <div class="card-body">
+            <form id="textUploadForm">
+                <div class="form-group">
+                    <textarea name="text" class="form-input" placeholder="Paste GC logs here" rows="5"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="textGcCollector">JDK and GC collector</label>
+                    <select class="form-input w-auto" id="textGcCollector">
+                        <option value="G1_AND_PARALLEL" selected>JDK 9+ &mdash; G1 / Parallel</option>
+                        <option value="SHENANDOAH">JDK 9+ &mdash; Shenandoah</option>
+                        <option value="ZGC">JDK 9+ &mdash; ZGC</option>
+                        <option value="JDK8">JDK 8 &mdash; G1 / Parallel</option>
+                    </select>
+                </div>
+                <div class="progress" style="display: none;">
+                    <div class="progress-bar" style="width: 0%"></div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-1">Upload logs</button>
+            </form>
+        </div>
+
+        <div class="card-header" style="cursor: default;">
+            Upload with cURL
+        </div>
+        <div class="card-body">
+            <p>Compress your logs:</p>
+            <pre><code>zip -r logs.zip logs_file.log*</code></pre>
+            <p class="form-hint">Make sure your logs are not bigger than <span th:text="${maxFileSize.toMegabytes()}"/>MB after compression.</p>
+
+            <p class="mt-2">Upload logs archive to the server:</p>
+            <pre><code>curl -X POST --form file=@./logs.zip [[${enqueueUrl}]]</code></pre>
+            <p class="form-hint">Logs other than G1 / Parallel from JDK 9+ need the parser: add
+                <kbd>--form gcCollector=SHENANDOAH</kbd>, <kbd>--form gcCollector=ZGC</kbd> or <kbd>--form gcCollector=JDK8</kbd>.</p>
+            <p class="form-hint">In response you'll receive a link to your report. The report will be available for [[${parsingProperties.results.expiration.toMinutes()}]] minutes.</p>
+
+            <h5 class="section-subtitle">Kubernetes</h5>
+            <pre><code>kubectl exec -t &lt;pod&gt; -- curl -X POST --form file=@&lt;path&gt; [[${enqueueUrl}]]</code></pre>
+            <p class="form-hint">The <kbd>curl</kbd> command must be available in the container.</p>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header collapsed" id="vmArgsToggle">
+            Recommended JVM Arguments
+            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="card-body collapse" id="vmArgsContent">
+            <div class="card">
+                <div class="card-header collapsed" data-collapse="#collapse1">
+                    VM Args for all statistics (JDK 11+)
+                    <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div id="collapse1" class="collapse">
+                    <div class="card-body">
+                        <pre><code>-Xlog:codecache=info,
+codecache+sweep*=trace,
+class+unload,
+class+load,
+os+thread,
+safepoint,
+gc*,
+gc+stringdedup=debug,
+stringdedup*=debug,
+gc+ergo=trace,
+gc+age=trace,
+gc+phases=trace,
+gc+humongous=trace,
+gc+heap=trace,
+gc+tlab=trace,
+jit+compilation=debug
+:file=/tmp/app.log
+:level,tags,time,uptime
+:filesize=104857600,filecount=5</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header collapsed" data-collapse="#collapse2">
+                    Simplest VM Args to add JDK &gt; 8
+                    <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div id="collapse2" class="collapse">
+                    <div class="card-body">
+                        <pre><code>-Xlog:safepoint,
+gc*,
+gc+heap=trace,
+gc+age=trace,
+gc+phases=trace,
+gc+humongous=trace
+:file=/tmp/app.log
+:level,tags,time,uptime</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header collapsed" data-collapse="#collapse3">
+                    VM Args for JDK 8
+                    <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div id="collapse3" class="collapse">
+                    <div class="card-body">
+                        <pre><code>-XX:+PrintGCDetails
+-XX:+PrintGCDateStamps
+-XX:+PrintGCTimeStamps
+-XX:+PrintTenuringDistribution
+-XX:+PrintGCApplicationStoppedTime
+-XX:+PrintGCApplicationConcurrentTime
+-XX:+PrintSafepointStatistics
+-XX:PrintSafepointStatisticsCount=1</code></pre>
+                        <p class="form-hint">JDK 8 prints the GC log and the safepoint statistics to the standard output, save it
+                            to a file, e.g. <kbd>java ... &gt; /tmp/app.log</kbd>. Do not add <kbd>-Xloggc</kbd> (the GC log would
+                            be separated from the safepoint statistics) nor <kbd>-XX:+LogVMOutput</kbd> (it escapes the output as
+                            XML).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header collapsed" id="runtimeToggle">
+            Unified logger &mdash; changing logs at runtime
+            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="card-body collapse" id="runtimeContent">
+            <pre><code>sudo -u JVM_USER jcmd `pgrep -x java` VM.log
+output="file=/PATH/TO/gc.log"
+output_options="filesize=104857600,filecount=5"
+what="codecache=info,codecache+sweep*=trace,class+unload,class+load,os+thread,safepoint,gc*,gc+stringdedup=debug,stringdedup*=debug,gc+ergo=trace,gc+age=trace,gc+phases=trace,gc+humongous=trace,gc+heap=trace,gc+tlab=trace,jit+compilation=debug"
+decorators="level,tags,time,uptime,pid"</code></pre>
+        </div>
+    </div>
+
+    <div class="alert alert-success mt-3">
+        <h4>Terms of service</h4>
+        Files you upload will be stored on the author's server and can be used by the author.
+        This page is created for the author's purposes &mdash; use at your own risk.
+    </div>
+
+    <div class="footer">
+        This tool is provided to you by <a href="mailto:ks@gclogs.com">Krzysztof Slusarski</a>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function isEmpty(str) {
+        return (!str || 0 === str.length);
+    }
+
+    function uploadFile(file, gcCollector) {
+        var payload = new FormData();
+        payload.append('file', file);
+        payload.append('gcCollector', gcCollector);
+        uploadLogs(payload, '#fileUploadForm', '/enqueue');
+    }
+
+    function uploadTextLogs(logsText, gcCollector) {
+        var payload = new FormData();
+        payload.append('text', logsText);
+        payload.append('gcCollector', gcCollector);
+        uploadLogs(payload, '#textUploadForm', '/enqueue-plain-text');
+    }
+
+    function uploadLogs(payload, parentFormSelector, endpoint) {
+        var parentElement = $(parentFormSelector);
+
+        function toggleProgressBarVisible(visible) {
+            var element = parentElement.find('.progress');
+            if (visible) { element.show(); } else { element.hide(); }
+        }
+
+        function setProgressBarPercent(percent) {
+            parentElement.find('.progress-bar').css('width', percent + '%');
+        }
+
+        function setButtonEnabled(enabled) {
+            parentElement.find('button[type=submit]').attr("disabled", !enabled);
+        }
+
+        var config = {
+            onUploadProgress: function (progressEvent) {
+                var percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                setProgressBarPercent(percentCompleted);
+            }
+        };
+
+        setProgressBarPercent(0);
+        toggleProgressBarVisible(true);
+        setButtonEnabled(false);
+
+        axios.post(endpoint, payload, config)
+            .then(function (res) {
+                var parsingId = res.data.parsingId;
+                window.open('/parsings/' + parsingId + '/progress');
+                toggleProgressBarVisible(false);
+                setProgressBarPercent(0);
+                setButtonEnabled(true);
+            })
+            .catch(function (err) {
+                toggleProgressBarVisible(false);
+                setProgressBarPercent(0);
+                setButtonEnabled(true);
+                console.log(err);
+            });
+    }
+
+    $(document).ready(function () {
+        $('#show-upload').click(function () {
+            $(this).hide();
+            $("#real-import").show();
+        });
+
+        $("#fileUploadForm").on("submit", function (e) {
+            e.preventDefault();
+            var inputField = $(this).find("input[type=file]");
+            var selectedFiles = inputField.prop('files');
+            if (selectedFiles.length) {
+                var selectedFile = selectedFiles[0];
+                if (selectedFile.size <= [[${maxFileSize.toBytes()}]]) {
+                    var gcCollector = $('#fileGcCollector').val();
+                    uploadFile(selectedFile, gcCollector);
+                } else {
+                    window.alert("File is too big! The size " + (selectedFile.size / (1024 * 1024)).toFixed(1) + "MB exceeds the limit of " + [[${maxFileSize.toMegabytes()}]] + "MB");
+                }
+            } else {
+                window.alert("Please select a file with logs first");
+            }
+        });
+
+        $("#textUploadForm").on("submit", function (e) {
+            e.preventDefault();
+            var logs = $(this).find("textarea").val();
+            if (isEmpty(logs)) {
+                window.alert("The log field is empty!");
+            } else {
+                var gcCollector = $('#textGcCollector').val();
+                uploadTextLogs(logs, gcCollector);
+            }
+        });
+
+        // Collapse toggles
+        document.querySelectorAll('[data-collapse]').forEach(function(el) {
+            el.addEventListener('click', function() {
+                var target = document.querySelector(this.getAttribute('data-collapse'));
+                if (target) {
+                    target.classList.toggle('show');
+                    this.classList.toggle('collapsed');
+                }
+            });
+        });
+
+        document.getElementById('vmArgsToggle').addEventListener('click', function() {
+            document.getElementById('vmArgsContent').classList.toggle('show');
+            this.classList.toggle('collapsed');
+        });
+
+        document.getElementById('runtimeToggle').addEventListener('click', function() {
+            document.getElementById('runtimeContent').classList.toggle('show');
+            this.classList.toggle('collapsed');
+        });
+    });
+</script>
+</body>
+</html>
