@@ -2,8 +2,8 @@
 
 # Image of the web toolkit (JFR viewer, collapsed stack viewer and GC logs analyzer), built from the sources:
 #
-#   docker build -t gclogs/toolkit-web-application:1.0-SNAPSHOT .
-#   docker run -it -p 8079:8079 -v /var/uploads:/uploads gclogs/toolkit-web-application:1.0-SNAPSHOT
+#   docker build -t gclogs/toolkit-web-application:2.0-SNAPSHOT .
+#   docker run -it -p 8079:8079 -v /var/uploads:/uploads gclogs/toolkit-web-application:2.0-SNAPSHOT
 #
 # The gclogs.com site is run with -e SPRING_PROFILES_ACTIVE=gclogs-com-site. The configuration options are
 # described in README.md.

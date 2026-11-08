@@ -26,9 +26,9 @@ the GC logs analyzer is available there and it owns the main page.
 The image is built from the sources (a local Maven or JDK is not needed):
 
 ```shell script
-docker build -t gclogs/toolkit-web-application:1.0-SNAPSHOT .
+docker build -t gclogs/toolkit-web-application:2.0-SNAPSHOT .
 mkdir -p /var/uploads && chown 1001 /var/uploads
-docker run -it -p 8079:8079 -v /var/uploads:/uploads gclogs/toolkit-web-application:1.0-SNAPSHOT
+docker run -it -p 8079:8079 -v /var/uploads:/uploads gclogs/toolkit-web-application:2.0-SNAPSHOT
 ```
 
 * the application runs as the user with uid 1001 - the directory mounted as `/uploads` (logs uploaded to the
