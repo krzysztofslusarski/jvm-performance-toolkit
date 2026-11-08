@@ -8,8 +8,8 @@ JAVA_HOME should point to JDK 17.
 
 ## How to install - from sources
 ```shell script
-git clone --depth 1 https://github.com/krzysztofslusarski/java-profiling-toolkit.git
-cd java-profiling-toolkit/
+git clone --depth 1 https://github.com/krzysztofslusarski/jvm-performance-toolkit.git
+cd jvm-performance-toolkit/
 mvn clean package
 ```
 
