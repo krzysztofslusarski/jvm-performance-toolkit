@@ -197,13 +197,32 @@ It is available as:
   window or in the menu of the report, the choice is remembered; on macOS the window title bars follow the theme
   after a restart, as Java can set their appearance only on start):
   `java -jar gc-logs-analyzer-standalone-application/target/gc-logs-analyzer-standalone.jar`
-* a command line application that writes an HTML report to the `report` directory:
-  `java -jar gc-logs-analyzer-cli-application/target/gc-logs-analyzer-cli.jar [--parser=<parser>] <log file>`
+* a command line application with two modes - an HTML report written to the `report` directory, or a full screen
+  viewer in the terminal:
+  ```
+  java -jar gc-logs-analyzer-cli-application/target/gc-logs-analyzer-cli.jar [report] [--parser=<parser>] <log file>
+  java -jar gc-logs-analyzer-cli-application/target/gc-logs-analyzer-cli.jar ui [--parser=<parser>] [--images=<protocol>] [--chart-theme=<theme>] <log file>
+  ```
 
-The report of the command line application has every chart and table of the standalone application, with the look
-of the web pages (light and dark theme). The charts are images, each one drawn in both themes; the `report` directory
-contains everything the page needs, so it can be copied and opened anywhere. The parser is one of
-`G1_AND_PARALLEL` (default), `SHENANDOAH`, `ZGC` or `JDK8`.
+The parser is one of `G1_AND_PARALLEL` (default), `SHENANDOAH`, `ZGC` or `JDK8`.
+
+The report of the command line application (`report`, the default mode) has every chart and table of the standalone
+application, with the look of the web pages (light and dark theme). The charts are images, each one drawn in both
+themes; the `report` directory contains everything the page needs, so it can be copied and opened anywhere.
+
+The `ui` mode shows the same pages in the terminal: the list of the pages on the left, the chosen page on the right.
+Long tables are scrolled vertically, wide ones horizontally with their first column kept in place. A chart is shown
+as an image on the whole screen - the one chosen from the charts of the page (`Enter` or `c`, or its number `1`-`9`),
+`←`/`→` switch to the previous/next chart, `o` opens it in the image viewer of the system, `Esc` goes back; `?` lists
+all the shortcuts. The images are drawn by the terminal, with one of the inline image protocols:
+* `iterm2` - iTerm2, WezTerm, VS Code (with `terminal.integrated.enableImages` turned on)
+* `kitty` - kitty, Ghostty
+
+The protocol is recognized by the environment variables of the terminal, `--images=iterm2|kitty|none` sets it
+explicitly (e.g. over ssh). Inside tmux the images are passed through to the outer terminal, which needs
+`set -g allow-passthrough on`. In other terminals the charts are saved as PNG files and can be opened in the image
+viewer. The charts are dark unless the terminal reports a light background (`COLORFGBG`, set e.g. by iTerm2),
+`--chart-theme=dark|light` chooses the theme.
 
 The web analyzer can be configured with environment variables (handy in [Docker](#how-to-run-in-docker)):
 

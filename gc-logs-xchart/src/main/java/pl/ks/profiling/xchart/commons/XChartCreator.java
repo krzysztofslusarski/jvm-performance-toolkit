@@ -29,6 +29,8 @@ public class XChartCreator {
             .map(Color::decode)
             .toArray(Color[]::new);
 
+    private static final int DEFAULT_HEIGHT = 800;
+
     private final PresentationFontProvider presentationFontProvider;
 
     public PieChart createPieChart(Chart chart, String title, int width) {
@@ -39,7 +41,11 @@ public class XChartCreator {
      * @param title shown above the chart, an empty one is not drawn
      */
     public PieChart createPieChart(Chart chart, String title, int width, ChartTheme theme) {
-        PieChart pieChart = createEmptyPieChart(title, width, theme);
+        return createPieChart(chart, title, width, DEFAULT_HEIGHT, theme);
+    }
+
+    public PieChart createPieChart(Chart chart, String title, int width, int height, ChartTheme theme) {
+        PieChart pieChart = createEmptyPieChart(title, width, height, theme);
         for (Object[] row : chart.getRows()) {
             String seriesName = row[0].toString();
             BigDecimal value = new BigDecimal(row[1].toString());
@@ -49,8 +55,8 @@ public class XChartCreator {
         return pieChart;
     }
 
-    private PieChart createEmptyPieChart(String title, int width, ChartTheme theme) {
-        PieChart pieChart = new PieChartBuilder().width(width).height(800).title(title).build();
+    private PieChart createEmptyPieChart(String title, int width, int height, ChartTheme theme) {
+        PieChart pieChart = new PieChartBuilder().width(width).height(height).title(title).build();
         pieChart.getStyler().setSeriesColors(SERIES_COLORS);
         pieChart.getStyler().setLegendVisible(true);
         theme.apply(pieChart.getStyler());
@@ -71,7 +77,11 @@ public class XChartCreator {
      * @param title shown above the chart, an empty one is not drawn
      */
     public XYChart createXyChart(Chart chart, String title, int width, ChartTheme theme) {
-        XYChart xyChart = createEmptyXyChart(chart, title, width, theme);
+        return createXyChart(chart, title, width, DEFAULT_HEIGHT, theme);
+    }
+
+    public XYChart createXyChart(Chart chart, String title, int width, int height, ChartTheme theme) {
+        XYChart xyChart = createEmptyXyChart(chart, title, width, height, theme);
         Object[][] chartRows = chart.getRows();
         java.util.List<Number> xAxis = extractColumnValues(chartRows, chart.getXAxisColumnIndex(), false);
         Object[] columnsHeadersRow = chart.getHeaders();
@@ -99,13 +109,13 @@ public class XChartCreator {
         }
     }
 
-    private XYChart createEmptyXyChart(Chart chart, String title, int width, ChartTheme theme) {
+    private XYChart createEmptyXyChart(Chart chart, String title, int width, int height, ChartTheme theme) {
         XYChart xyChart = new XYChartBuilder()
                 .title(title)
                 .xAxisTitle(chart.getXAxisLabel())
                 .yAxisTitle(chart.getYAxisLabel())
                 .width(width)
-                .height(800)
+                .height(height)
                 .build();
         XYStyler chartStyler = xyChart.getStyler();
         if (chart.isForceZeroMinValue()) {
